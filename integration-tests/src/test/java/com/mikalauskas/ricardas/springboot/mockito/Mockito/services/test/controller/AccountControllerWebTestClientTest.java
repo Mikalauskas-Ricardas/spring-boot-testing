@@ -12,12 +12,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AccountControllerWebTestClientTest {
+    private static final String ROOT_URL = "/api/accounts";
+
     @Autowired
     private WebTestClient webTestClient;
 
@@ -37,7 +40,7 @@ class AccountControllerWebTestClientTest {
         transactionDto.setBankId(1L);
         transactionDto.setAmount(new BigDecimal("500"));
 
-        webTestClient.post().uri("/api/accounts/transfer")
+        webTestClient.post().uri(ROOT_URL + "/transfer")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(transactionDto)
                 .exchange()
@@ -57,7 +60,7 @@ class AccountControllerWebTestClientTest {
     @Test
     @Order(2)
     void detailsTest() {
-        webTestClient.get().uri("/api/accounts/1")
+        webTestClient.get().uri(ROOT_URL + "/1")
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -66,5 +69,47 @@ class AccountControllerWebTestClientTest {
                     Account account = resp.getResponseBody();
                     assertEquals("Ricky", account.getPerson());
                 });
+    }
+
+    @Test
+    @Order(3)
+    void listTest() {
+        webTestClient.get().uri(ROOT_URL + "/")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBodyList(Account.class)
+                .consumeWith(resp -> {
+                    List<Account> accounts = resp.getResponseBody();
+                    assertEquals("Ricky", accounts.get(0).getPerson());
+                }).hasSize(2);
+    }
+
+    @Test
+    @Order(4)
+    void saveTest() throws Exception {
+        Account account = new Account(null, "Pepe", new BigDecimal("500"));
+        webTestClient.post().uri(ROOT_URL + "/save")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(account)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(Account.class)
+                .consumeWith(resp -> {
+                    Account createdAccount = resp.getResponseBody();
+                    assertEquals(3, createdAccount.getId());
+                    assertEquals(account.getPerson(), createdAccount.getPerson());
+                    assertEquals(account.getBalance(), createdAccount.getBalance());
+                });
+    }
+
+    @Test
+    @Order(5)
+    void deleteTest() {
+        webTestClient.delete().uri(ROOT_URL + "/delete/3")
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody().isEmpty();
     }
 }

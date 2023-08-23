@@ -3,8 +3,10 @@ package com.mikalauskas.ricardas.springboot.mockito.Mockito.services.test.contro
 import com.mikalauskas.ricardas.springboot.mockito.Mockito.services.test.model.Account;
 import com.mikalauskas.ricardas.springboot.mockito.Mockito.services.test.model.TransactionDto;
 import com.mikalauskas.ricardas.springboot.mockito.Mockito.services.test.service.AccountService;
+import io.swagger.annotations.ResponseHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,12 @@ public class AccountController {
     @ResponseStatus(HttpStatus.CREATED)
     public Account save(@RequestBody Account account) {
         return accountService.save(account);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        accountService.deleteById(id);
     }
 
     @PostMapping("/transfer")

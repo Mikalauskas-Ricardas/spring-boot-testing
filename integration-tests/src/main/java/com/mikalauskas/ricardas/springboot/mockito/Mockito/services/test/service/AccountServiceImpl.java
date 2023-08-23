@@ -33,8 +33,15 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public Account save(Account account) {
-        return null;
+        return accountRepository.save(account);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        accountRepository.deleteById(id);
     }
 
     @Override
